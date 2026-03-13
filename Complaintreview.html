@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNC | Calibration | Batch 35</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass: rgba(10, 15, 30, 0.65);
+            --border: rgba(255, 255, 255, 0.15);
+            --accent: #00e5ff;
+            --error: #ff3b30;
+            --success: #34c759;
+            --transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .background-image {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("https://images.wallpapersden.com/image/download/4k-beautiful-landscape-digital-art_bGhuZm6UmZqaraWkpJRobWllrWdma2U.jpg");
+            background-size: cover;
+            background-position: center;
+            filter: brightness(60%) blur(6px); 
+            z-index: -1;
+            transform: scale(1.05);
+        }
+
+        #app-container {
+            width: 90%;
+            max-width: 780px;
+            background: var(--glass);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 4rem;
+            z-index: 10;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+        }
+
+        #feedback-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            font-weight: 800;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .show-feedback { opacity: 1 !important; transition: opacity 0.2s ease; }
+        .fade-out { opacity: 0 !important; transition: opacity 2s cubic-bezier(0.2, 0, 0, 1); }
+
+        #custom-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            backdrop-filter: blur(12px);
+        }
+
+        .modal-content {
+            background: rgba(20, 20, 30, 0.95);
+            padding: 3rem;
+            border-radius: 35px;
+            border: 1px solid rgba(255, 59, 48, 0.5);
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .screen { display: none; }
+        .screen.active { display: block; animation: screenLoad 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+
+        @keyframes screenLoad { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @keyframes subtleShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .shake { animation: subtleShake 0.3s ease-in-out; }
+
+        .scenario-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2.5rem;
+            border-radius: 25px;
+            margin: 2rem 0;
+            font-style: italic;
+            font-size: 1.4rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #fff;
+            line-height: 1.4;
+            animation: screenLoad 0.6s ease;
+        }
+
+        .btn-group { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; }
+        
+        button {
+            padding: 16px 40px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: rgba(255,255,255,0.18);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active { transform: translateY(0) scale(0.97); }
+
+        .modal-btn { background: var(--error); border: none; margin-top: 25px; width: 100%; }
+        .modal-btn:hover { background: #ff1240; box-shadow: 0 0 20px var(--error); }
+
+        h1 { font-size: 3rem; letter-spacing: -1px; margin-bottom: 0.8rem; font-weight: 800; }
+        p { color: rgba(255,255,255,0.8); line-height: 1.6; font-size: 1.1rem; }
+
+        @keyframes fadeScaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        .transition-stage { animation: fadeScaleUp 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        .stage-out { animation: fadeOut 0.3s ease forwards; }
+
+    </style>
+</head>
+<body>
+
+<div class="background-image"></div>
+
+<div id="custom-modal">
+    <div class="modal-content">
+        <h2 style="color: var(--error); margin-bottom: 1.5rem; font-weight: 800;">ERROR</h2>
+        <p style="color: #fff;"><strong>Never use Open Complaint.</strong><br><br>Open complaints are not investigated. This directly violates the action plan committed to during the Playbook Review.</p>
+        <button class="modal-btn" onclick="closeModal()">I Understand</button>
+    </div>
+</div>
+
+<div id="feedback-text">Correct</div>
+
+<div id="app-container">
+    <div id="screen-start" class="screen active">
+        <h1>COMPLAINT PROCESS</h1>
+        <p>A streamlined session focused on accurately identifying and understanding the nuances of customer dissatisfaction.</p>
+        <button onclick="nextScreen('screen-def-1')" style="margin-top: 20px;">Begin Practice</button>
+    </div>
+
+    <div id="screen-def-1" class="screen">
+        <h1>Definition</h1>
+        <p>A complaint is filed if a customer displays dissatisfaction with PNC <strong>Policy, Employees, Services, or Products.</strong></p>
+        <button onclick="nextScreen('screen-def-2')" style="margin-top: 20px;">Continue</button>
+    </div>
+
+    <div id="screen-def-2" class="screen">
+        <h1>Procedure</h1>
+        <p><strong>Closed:</strong> Standard procedure.<br><strong>Escalated:</strong> Legal, Media, or Discrimination.<br><span style="color:var(--error); font-weight: 800;">Open: DO NOT USE.</span></p>
+        <button onclick="startQuiz()" style="margin-top: 20px;">Start Calibration</button>
+    </div>
+
+    <div id="screen-quiz" class="screen">
+        <h4 id="question-count" style="opacity: 0.5; margin-bottom: 15px; font-weight: 400;">SCENARIO 1/20</h4>
+        <div class="scenario-box" id="scenario-text">Scenario...</div>
+        <div id="interactive-container" class="transition-stage">
+            <div id="stage-1">
+                <p style="margin-bottom: 15px; color: #fff;">Is this a Complaint?</p>
+                <div class="btn-group">
+                    <button onclick="checkStage1(true)">Yes</button>
+                    <button onclick="checkStage1(false)">No</button>
+                </div>
+            </div>
+            <div id="stage-2" style="display:none;">
+                <p style="margin-bottom: 15px; color: #fff;">Complaint Type:</p>
+                <div class="btn-group">
+                    <button onclick="checkStage2('open')" style="color: var(--error)">Open</button>
+                    <button onclick="checkStage2('closed')">Closed</button>
+                    <button onclick="checkStage2('escalated')">Escalated</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-results" class="screen">
+        <h1>Calibration Complete</h1>
+        <p id="final-score">Scenario testing finalized according to standard operating procedures.</p>
+        <button onclick="location.reload()" style="margin-top: 20px;">Restart Session</button>
+    </div>
+</div>
+
+<script>
+    const scenarios = [
+        { text: "I love how it takes 20 minutes just to talk to a human. Truly world-class service.", isComplaint: true, type: 'closed' },
+        { text: "My local grocery store stopped taking my PNC card because their machine is broken.", isComplaint: false },
+        { text: "The teller at the branch was incredibly rude to me today. I've never been treated like that.", isComplaint: true, type: 'closed' },
+        { text: "I'm going to post this entire experience on my Facebook.", isComplaint: true, type: 'escalated' },
+        { text: "I couldn't get into the branch because there was no ramp for my wheelchair.", isComplaint: true, type: 'escalated' },
+        { text: "The interest rates on this savings account are a joke.", isComplaint: true, type: 'closed' },
+        { text: "I'm so mad at my husband for forgetting the PIN again!", isComplaint: false },
+        { text: "My lawyer will be in contact with your legal department by Monday morning.", isComplaint: true, type: 'escalated' },
+        { text: "Oh, great. Another 'convenience fee'. Thanks for nothing, PNC.", isComplaint: true, type: 'closed' },
+        { text: "The mobile app crashed three times while I was trying to pay my mortgage.", isComplaint: true, type: 'closed' },
+        { text: "I feel like I was denied this loan specifically because of my age.", isComplaint: true, type: 'escalated' },
+        { text: "I'm calling the local news station to tell them how you've handled this.", isComplaint: true, type: 'escalated' },
+        { text: "The traffic to get to this branch was absolutely terrible today.", isComplaint: false },
+        { text: "I don't understand why your website is so hard to navigate. Fix it.", isComplaint: true, type: 'closed' },
+        { text: "Is it PNC's policy to make customers wait in the rain?", isComplaint: true, type: 'closed' },
+        { text: "I'm just crying because I lost my job today.", isComplaint: false },
+        { text: "The representative I spoke to earlier gave me the wrong information.", isComplaint: true, type: 'closed' },
+        { text: "I'm going to take this story to the papers if this isn't resolved today.", isComplaint: true, type: 'escalated' },
+        { text: "Wonderful that you charge me $35 for being overdrawn. Just wonderful.", isComplaint: true, type: 'closed' },
+        { text: "The post office lost my new checkbooks.", isComplaint: false }
+    ];
+
+    let currentIdx = 0;
+    let isProcessing = false; // DOUBLE CLICK GUARD
+    const badge = document.getElementById('feedback-text');
+    const interContainer = document.getElementById('interactive-container');
+
+    function nextScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function triggerFeedback(type) {
+        badge.innerText = type === 'correct' ? "Correct" : "Try Again";
+        badge.style.color = type === 'correct' ? "var(--success)" : "var(--error)";
+        badge.style.textShadow = `0 0 40px ${type === 'correct' ? 'var(--success)' : 'var(--error)'}`;
+        
+        badge.classList.remove('fade-out', 'show-feedback');
+        void badge.offsetWidth; 
+        badge.classList.add('show-feedback');
+        
+        if(type === 'incorrect') {
+            document.getElementById('app-container').classList.add('shake');
+            setTimeout(() => {
+                document.getElementById('app-container').classList.remove('shake');
+                isProcessing = false; // Re-enable clicks after shake ends
+            }, 350);
+        }
+
+        setTimeout(() => {
+            badge.classList.remove('show-feedback');
+            badge.classList.add('fade-out');
+        }, 500);
+    }
+
+    function openModal() { 
+        document.getElementById('custom-modal').style.display = 'flex'; 
+    }
+
+    function closeModal() { 
+        document.getElementById('custom-modal').style.display = 'none'; 
+        isProcessing = false; // Re-enable clicks after modal closes
+    }
+
+    function startQuiz() { nextScreen('screen-quiz'); loadScenario(); }
+
+    function loadScenario() {
+        const s = scenarios[currentIdx];
+        document.getElementById('question-count').innerText = `SCENARIO ${currentIdx + 1}/20`;
+        
+        const textBox = document.getElementById('scenario-text');
+        textBox.style.animation = 'none';
+        void textBox.offsetWidth;
+        textBox.style.animation = 'screenLoad 0.6s ease';
+        textBox.innerText = `"${s.text}"`;
+
+        resetInteractiveStage();
+        document.getElementById('stage-1').style.display = 'block';
+        document.getElementById('stage-2').style.display = 'none';
+        isProcessing = false; // Ready for next interaction
+    }
+
+    function resetInteractiveStage() {
+        interContainer.style.animation = 'none';
+        void interContainer.offsetWidth; 
+        interContainer.style.animation = 'fadeScaleUp 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards';
+    }
+
+    function checkStage1(userChoice) {
+        if (isProcessing) return; // Ignore if already processing
+        isProcessing = true;
+
+        const s = scenarios[currentIdx];
+        if (userChoice === s.isComplaint) {
+            triggerFeedback('correct');
+            if (userChoice) {
+                setTimeout(() => {
+                    document.getElementById('stage-1').style.display = 'none';
+                    document.getElementById('stage-2').style.display = 'block';
+                    interContainer.style.animation = 'none';
+                    void interContainer.offsetWidth;
+                    interContainer.style.animation = 'fadeScaleUp 0.4s cubic-bezier(0.2, 0, 0, 1) forwards';
+                    isProcessing = false; // Re-enable for the second stage
+                }, 600);
+            } else {
+                setTimeout(nextQuestion, 1000);
+            }
+        } else {
+            triggerFeedback('incorrect');
+            // isProcessing is reset inside triggerFeedback for incorrect answers after the shake
+        }
+    }
+
+    function checkStage2(type) {
+        if (isProcessing) return; // Ignore double clicks
+        isProcessing = true;
+
+        const s = scenarios[currentIdx];
+        if (type === 'open') {
+            triggerFeedback('incorrect');
+            openModal(); 
+            return;
+        }
+
+        if (type === s.type) {
+            triggerFeedback('correct');
+            setTimeout(nextQuestion, 1000);
+        } else {
+            triggerFeedback('incorrect');
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < scenarios.length) {
+            interContainer.classList.add('stage-out');
+            setTimeout(() => {
+                interContainer.classList.remove('stage-out');
+                loadScenario();
+            }, 300);
+        } else {
+            nextScreen('screen-results');
+        }
+    }
+</script>
+</body>
+</html>
